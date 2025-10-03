@@ -14,6 +14,11 @@
     h1 {
       color: #d81b60;
     }
+    .stats {
+      margin: 10px 0;
+      font-size: 18px;
+      color: #333;
+    }
     .game-board {
       display: grid;
       grid-template-columns: repeat(4, 100px);
@@ -43,33 +48,88 @@
       color: white;
       cursor: default;
     }
+    .winner {
+      margin-top: 20px;
+      font-size: 24px;
+      color: green;
+      font-weight: bold;
+    }
+    .restart-btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #d81b60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none; /* ซ่อนตอนเริ่ม */
+    }
+    .restart-btn:hover {
+      background: #ad1457;
+    }
   </style>
 </head>
 <body>
   <h1>🎴 เกมจับคู่ความจำ 🎴</h1>
+
+  <div class="stats">
+    ⏱ เวลา: <span id="time">0</span> วินาที | 
+    🎲 ครั้ง: <span id="moves">0</span> | 
+    🏆 คะแนน: <span id="score">0</span>
+  </div>
+
   <div class="game-board" id="gameBoard"></div>
+  <div id="winnerMessage" class="winner"></div>
+  <button id="restartBtn" class="restart-btn">🔄 เล่นอีกครั้ง</button>
 
   <script>
     const emojis = ["🍎","🍌","🍇","🍉","🍓","🍒","🥝","🍍"];
-    let cards = [...emojis, ...emojis];
-    cards.sort(() => 0.5 - Math.random());
+    let cards, gameBoard, timeEl, movesEl, scoreEl, winnerMessage, restartBtn;
+    let firstCard, secondCard, lockBoard, moves, score, matchedPairs, time, timer;
 
-    const gameBoard = document.getElementById("gameBoard");
-    let firstCard, secondCard;
-    let lockBoard = false;
+    function initGame() {
+      // รีเซ็ตค่า
+      gameBoard.innerHTML = "";
+      winnerMessage.textContent = "";
+      restartBtn.style.display = "none";
 
-    cards.forEach((emoji, index) => {
-      const card = document.createElement("div");
-      card.classList.add("card");
-      card.dataset.emoji = emoji;
-      card.innerHTML = "?";
-      card.addEventListener("click", flipCard);
-      gameBoard.appendChild(card);
-    });
+      cards = [...emojis, ...emojis];
+      cards.sort(() => 0.5 - Math.random());
+
+      firstCard = null;
+      secondCard = null;
+      lockBoard = false;
+      moves = 0;
+      score = 0;
+      matchedPairs = 0;
+      time = 0;
+
+      movesEl.textContent = moves;
+      scoreEl.textContent = score;
+      timeEl.textContent = time;
+
+      clearInterval(timer);
+      timer = setInterval(() => {
+        time++;
+        timeEl.textContent = time;
+      }, 1000);
+
+      // สร้างการ์ด
+      cards.forEach((emoji) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.emoji = emoji;
+        card.innerHTML = "?";
+        card.addEventListener("click", flipCard);
+        gameBoard.appendChild(card);
+      });
+    }
 
     function flipCard() {
       if (lockBoard) return;
       if (this === firstCard) return;
+      if (this.classList.contains("matched")) return;
 
       this.classList.add("flipped");
       this.innerHTML = this.dataset.emoji;
@@ -80,18 +140,34 @@
       }
 
       secondCard = this;
+      moves++;
+      movesEl.textContent = moves;
       checkMatch();
     }
 
     function checkMatch() {
       let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
-      isMatch ? disableCards() : unflipCards();
+      if (isMatch) {
+        score += 10;
+        disableCards();
+      } else {
+        score -= 2;
+        unflipCards();
+      }
+      scoreEl.textContent = score;
     }
 
     function disableCards() {
       firstCard.classList.add("matched");
       secondCard.classList.add("matched");
+      matchedPairs++;
       resetBoard();
+
+      if (matchedPairs === emojis.length) {
+        clearInterval(timer);
+        winnerMessage.textContent = `🎉 คุณชนะ! ใช้เวลา ${time} วินาที, กดไป ${moves} ครั้ง, ได้คะแนน ${score} 🏆`;
+        restartBtn.style.display = "inline-block";
+      }
     }
 
     function unflipCards() {
@@ -108,6 +184,20 @@
     function resetBoard() {
       [firstCard, secondCard, lockBoard] = [null, null, false];
     }
+
+    // เริ่มเกมครั้งแรก
+    window.onload = () => {
+      gameBoard = document.getElementById("gameBoard");
+      timeEl = document.getElementById("time");
+      movesEl = document.getElementById("moves");
+      scoreEl = document.getElementById("score");
+      winnerMessage = document.getElementById("winnerMessage");
+      restartBtn = document.getElementById("restartBtn");
+
+      restartBtn.addEventListener("click", initGame);
+
+      initGame();
+    };
   </script>
 </body>
 </html>
