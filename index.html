@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>เกมจับคู่</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #fce4ec;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #d81b60;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background: #f8bbd0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s;
+    }
+    .card.flipped {
+      background: white;
+      border: 2px solid #d81b60;
+    }
+    .card.matched {
+      background: #d81b60;
+      color: white;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎴 เกมจับคู่ความจำ 🎴</h1>
+  <div class="game-board" id="gameBoard"></div>
+
+  <script>
+    const emojis = ["🍎","🍌","🍇","🍉","🍓","🍒","🥝","🍍"];
+    let cards = [...emojis, ...emojis];
+    cards.sort(() => 0.5 - Math.random());
+
+    const gameBoard = document.getElementById("gameBoard");
+    let firstCard, secondCard;
+    let lockBoard = false;
+
+    cards.forEach((emoji, index) => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.dataset.emoji = emoji;
+      card.innerHTML = "?";
+      card.addEventListener("click", flipCard);
+      gameBoard.appendChild(card);
+    });
+
+    function flipCard() {
+      if (lockBoard) return;
+      if (this === firstCard) return;
+
+      this.classList.add("flipped");
+      this.innerHTML = this.dataset.emoji;
+
+      if (!firstCard) {
+        firstCard = this;
+        return;
+      }
+
+      secondCard = this;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+      isMatch ? disableCards() : unflipCards();
+    }
+
+    function disableCards() {
+      firstCard.classList.add("matched");
+      secondCard.classList.add("matched");
+      resetBoard();
+    }
+
+    function unflipCards() {
+      lockBoard = true;
+      setTimeout(() => {
+        firstCard.classList.remove("flipped");
+        secondCard.classList.remove("flipped");
+        firstCard.innerHTML = "?";
+        secondCard.innerHTML = "?";
+        resetBoard();
+      }, 1000);
+    }
+
+    function resetBoard() {
+      [firstCard, secondCard, lockBoard] = [null, null, false];
+    }
+  </script>
+</body>
+</html>
