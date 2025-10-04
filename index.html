@@ -53,121 +53,108 @@
   <button id="restart">เล่นอีกครั้ง</button>
 
   <!-- เสียง -->
-  <audio id="bgMusic" src="https://youtu.be/Xi69bI9vKDg?si=tIgjfCHDNFZJH4oW" loop></audio>
-  <audio id="flipSound" src="https://youtu.be/jAoz3JPua1I?si=4ThuDvHtOMMfzMMH" ></audio>
-  <audio id="matchSound" src="https://youtu.be/4Gk_ROalMXQ?si=CoubILBcKGPK2kQS" ></audio>
-  <audio id="loseSound" src="https://youtu.be/LZN_nUe8koc?si=fvBxi5gdzAdndV7R" ></audio>
+  <audio id="bgMusic" src="C:\Users\admin\Downloads\comic-humor-memes-tiktok-music-357342.mp3" loop></audio>
+  <audio id="flipSound" src="C:\Users\admin\Downloads\dry-fart.mp3" ></audio>
+  <audio id="matchSound" src="C:\Users\admin\Downloads\ding-sound-effect_2.mp3" ></audio>
+  <audio id="loseSound" src="C:\Users\admin\Downloads\undertakers-bell_2UwFCIe.mp3" ></audio>
 
   <script>
-    const emojis = ["🍎","🍎","🍊","🍊","🍇","🍇","🍉","🍉"];
-    const board = document.getElementById("gameBoard");
-    const statusText = document.getElementById("status");
-    const restartBtn = document.getElementById("restart");
+    const emojis = [
+    "🍎","🍎","🍊","🍊","🍇","🍇","🍉","🍉",
+    "🍌","🍌","🍍","🍍","🍒","🍒","🥝","🥝"
+  ];
 
-    const bgMusic = document.getElementById("bgMusic");
-    const flipSound = document.getElementById("flipSound");
-    const matchSound = document.getElementById("matchSound");
-    const loseSound = document.getElementById("loseSound");
+  const board = document.getElementById("gameBoard");
+  const statusText = document.getElementById("status");
+  const restartBtn = document.getElementById("restart");
 
-    let firstCard, secondCard;
-    let lockBoard = false;
-    let moves = 0;
-    let timeLeft = 60;
-    let timer;
-    let matchedPairs = 0;
+  let firstCard, secondCard;
+  let lockBoard = false;
+  let moves = 0;
+  let timeLeft = 60;
+  let timer;
+  let matchedPairs = 0;
 
-    function shuffle(array) {
-      return array.sort(() => Math.random() - 0.5);
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  function startGame() {
+    board.innerHTML = "";
+    shuffle(emojis).forEach(icon => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.dataset.icon = icon;
+      card.innerText = "";
+      card.addEventListener("click", flipCard);
+      board.appendChild(card);
+    });
+    moves = 0;
+    timeLeft = 60;
+    matchedPairs = 0;
+    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
+    clearInterval(timer);
+    timer = setInterval(countDown, 1000);
+  }
+
+  function flipCard() {
+    if (lockBoard || this.classList.contains("flipped")) return;
+    this.innerText = this.dataset.icon;
+    this.classList.add("flipped");
+
+    if (!firstCard) {
+      firstCard = this;
+      return;
     }
+    secondCard = this;
+    moves++;
+    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
+    checkMatch();
+  }
 
-    function startGame() {
-      board.innerHTML = "";
-      shuffle(emojis).forEach(icon => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.dataset.icon = icon;
-        card.innerText = "";
-        card.addEventListener("click", flipCard);
-        board.appendChild(card);
-      });
-      moves = 0;
-      timeLeft = 60;
-      matchedPairs = 0;
-      statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-      clearInterval(timer);
-      timer = setInterval(countDown, 1000);
-      bgMusic.play();
-    }
+  function checkMatch() {
+    if (firstCard.dataset.icon === secondCard.dataset.icon) {
+      firstCard.classList.add("matched");
+      secondCard.classList.add("matched");
+      matchedPairs++;
+      resetFlip();
 
-    function flipCard() {
-      if (lockBoard || this.classList.contains("flipped")) return;
-      flipSound.play();
-      this.innerText = this.dataset.icon;
-      this.classList.add("flipped");
-
-      if (!firstCard) {
-        firstCard = this;
-        return;
+      if (matchedPairs === emojis.length / 2) {
+        endGame(true, "ยินดีด้วย! คุณชนะ 🎉");
       }
-      secondCard = this;
-      moves++;
-      statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-
-      if (moves > 18) {
-        endGame(false, "คุณกดเกิน 18 ครั้ง แพ้!");
-        return;
-      }
-
-      checkMatch();
-    }
-
-    function checkMatch() {
-      if (firstCard.dataset.icon === secondCard.dataset.icon) {
-        matchSound.play();
-        firstCard.classList.add("matched");
-        secondCard.classList.add("matched");
-        matchedPairs++;
+    } else {
+      lockBoard = true;
+      setTimeout(() => {
+        firstCard.innerText = "";
+        secondCard.innerText = "";
+        firstCard.classList.remove("flipped");
+        secondCard.classList.remove("flipped");
         resetFlip();
-
-        if (matchedPairs === emojis.length / 2) {
-          endGame(true, "ยินดีด้วย! คุณชนะ 🎉");
-        }
-      } else {
-        lockBoard = true;
-        setTimeout(() => {
-          firstCard.innerText = "";
-          secondCard.innerText = "";
-          firstCard.classList.remove("flipped");
-          secondCard.classList.remove("flipped");
-          resetFlip();
-        }, 800);
-      }
+      }, 800);
     }
+  }
 
-    function resetFlip() {
-      [firstCard, secondCard] = [null, null];
-      lockBoard = false;
+  function resetFlip() {
+    [firstCard, secondCard] = [null, null];
+    lockBoard = false;
+  }
+
+  function countDown() {
+    timeLeft--;
+    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
+    if (timeLeft <= 0) {
+      endGame(false, "หมดเวลา! แพ้แล้ว ❌");
     }
+  }
 
-    function countDown() {
-      timeLeft--;
-      statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-      if (timeLeft <= 0) {
-        endGame(false, "หมดเวลา! แพ้แล้ว ❌");
-      }
-    }
+  function endGame(win, message) {
+    clearInterval(timer);
+    alert(message);
+  }
 
-    function endGame(win, message) {
-      clearInterval(timer);
-      bgMusic.pause();
-      bgMusic.currentTime = 0;
-      if (!win) loseSound.play();
-      alert(message);
-    }
+  restartBtn.addEventListener("click", startGame);
 
-    restartBtn.addEventListener("click", startGame);
-
-    startGame();
+  startGame();
   </script>
 </body>
 </html>
