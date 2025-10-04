@@ -53,41 +53,49 @@
 
   <script>
     const emojis = ["🍎","🍌","🍇","🍉","🍓","🍒","🥝","🍍"];
-    let cards = [...emojis, ...emojis];
-    cards.sort(() => 0.5 - Math.random());
-
-    const gameBoard = document.getElementById("gameBoard");
+    const board = document.getElementById("gameBoard");
+    const statusText = document.getElementById("status");
+    const restartBtn = document.getElementById("restart");
     let firstCard, secondCard;
     let lockBoard = false;
+    let moves = 0;
+    let timeLeft = 60;
+    let timer;
+    let matchedPairs = 0;
 
-    cards.forEach((emoji, index) => {
-      const card = document.createElement("div");
-      card.classList.add("card");
-      card.dataset.emoji = emoji;
-      card.innerHTML = "?";
-      card.addEventListener("click", flipCard);
-      gameBoard.appendChild(card);
-    });
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
 
-     moves = 0;
-    timeLeft = 60;
-    matchedPairs = 0;
-    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-    clearInterval(timer);
-    timer = setInterval(countDown, 1000);
+    function startGame() {
+      board.innerHTML = "";
+      shuffle(emojis).forEach(icon => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.icon = icon;
+        card.innerText = "";
+        card.addEventListener("click", flipCard);
+        board.appendChild(card);
+      });
+      moves = 0;
+      timeLeft = 60;
+      matchedPairs = 0;
+      statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
+      clearInterval(timer);
+      timer = setInterval(countDown, 1000);
+      bgMusic.play();
+    }
 
     function flipCard() {
-      if (lockBoard) return;
-      if (this === firstCard) return;
-
+      if (lockBoard || this.classList.contains("flipped")) return;
+      flipSound.play();
+      this.innerText = this.dataset.icon;
       this.classList.add("flipped");
-      this.innerHTML = this.dataset.emoji;
 
       if (!firstCard) {
         firstCard = this;
         return;
       }
-
       secondCard = this;
       moves++;
       statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
@@ -100,40 +108,43 @@
       checkMatch();
     }
 
-
     function checkMatch() {
-      let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
-      isMatch ? disableCards() : unflipCards();
+      if (firstCard.dataset.icon === secondCard.dataset.icon) {
+        matchSound.play();
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+        matchedPairs++;
+        resetFlip();
+
+        if (matchedPairs === emojis.length / 2) {
+          endGame(true, "ยินดีด้วย! คุณชนะ 🎉");
+        }
+      } else {
+        lockBoard = true;
+        setTimeout(() => {
+          firstCard.innerText = "";
+          secondCard.innerText = "";
+          firstCard.classList.remove("flipped");
+          secondCard.classList.remove("flipped");
+          resetFlip();
+        }, 800);
+      }
     }
 
-    function disableCards() {
-      firstCard.classList.add("matched");
-      secondCard.classList.add("matched");
-      resetBoard();
+    function resetFlip() {
+      [firstCard, secondCard] = [null, null];
+      lockBoard = false;
     }
 
-    function unflipCards() {
-      lockBoard = true;
-      setTimeout(() => {
-        firstCard.classList.remove("flipped");
-        secondCard.classList.remove("flipped");
-        firstCard.innerHTML = "?";
-        secondCard.innerHTML = "?";
-        resetBoard();
-      }, 1000);
-    }
-
-    function resetBoard() {
-      [firstCard, secondCard, lockBoard] = [null, null, false];
-    }
     function countDown() {
-    timeLeft--;
-    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-    if (timeLeft <= 0) {
-      endGame(false, "หมดเวลา! แพ้แล้ว ❌");
+      timeLeft--;
+      statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
+      if (timeLeft <= 0) {
+        endGame(false, "หมดเวลา! แพ้แล้ว ❌");
+      }
     }
-  }
-  function endGame(win, message) {
+
+    function endGame(win, message) {
       clearInterval(timer);
       bgMusic.pause();
       bgMusic.currentTime = 0;
