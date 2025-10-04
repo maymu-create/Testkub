@@ -245,17 +245,6 @@
       }
     }
 
-    // toggle เพลง
-    function toggleMusic() {
-      if (bgMusic.paused) {
-        bgMusic.play();
-        musicBtn.textContent = "🎵 ปิดเพลง";
-      } else {
-        bgMusic.pause();
-        musicBtn.textContent = "🎵 เปิดเพลง";
-      }
-    }
-
     // เริ่มเกมครั้งแรก
     window.onload = () => {
       gameBoard = document.getElementById("gameBoard");
