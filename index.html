@@ -14,11 +14,6 @@
     h1 {
       color: #d81b60;
     }
-    .stats {
-      margin: 10px 0;
-      font-size: 18px;
-      color: #333;
-    }
     .game-board {
       display: grid;
       grid-template-columns: repeat(4, 100px);
@@ -48,128 +43,38 @@
       color: white;
       cursor: default;
     }
-    .winner {
-      margin-top: 20px;
-      font-size: 24px;
-      color: green;
-      font-weight: bold;
-    }
-    .loser {
-      margin-top: 20px;
-      font-size: 24px;
-      color: red;
-      font-weight: bold;
-    }
-    .restart-btn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #d81b60;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      display: none;
-    }
-    .restart-btn:hover {
-      background: #ad1457;
-    }
-    .music-btn {
-      margin-top: 10px;
-      padding: 5px 12px;
-      background: #880e4f;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .music-btn:hover {
-      background: #6a1b9a;
-    }
   </style>
 </head>
 <body>
   <h1>🎴 เกมจับคู่ความจำ 🎴</h1>
-
-  <div class="stats">
-    ⏱ เวลา: <span id="time">0</span> วินาที | 
-    🎲 ครั้ง: <span id="moves">0</span> / 18 | 
-    🏆 คะแนน: <span id="score">0</span>
-  </div>
-
   <div class="game-board" id="gameBoard"></div>
-  <div id="message"></div>
-  <button id="restartBtn" class="restart-btn">🔄 เล่นอีกครั้ง</button>
-  <br>
-  <button id="musicBtn" class="music-btn">🎵 ปิดเพลง</button>
 
-  <!-- เสียงเอฟเฟกต์ -->
-  <audio id="flipSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2f3fef1b8b.mp3"></audio>
-  <audio id="matchSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_1c4b7efdd6.mp3"></audio>
-  <audio id="wrongSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_3db3db9e39.mp3"></audio>
-  <audio id="winSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7639ef9d17.mp3"></audio>
-  <audio id="loseSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_1e2a2f5d4a.mp3"></audio>
-
-  <!-- เพลงพื้นหลัง -->
-  <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5a2fa9aef9.mp3?filename=fun-game-music-1-minute-loop-10970.mp3" loop autoplay></audio>
+  <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+  <audio id="flipSound" src="https://www.fesliyanstudios.com/play-mp3/387" ></audio>
+  <audio id="matchSound" src="https://www.fesliyanstudios.com/play-mp3/667" ></audio>
+  <audio id="loseSound" src="https://www.fesliyanstudios.com/play-mp3/6296" ></audio>
 
   <script>
     const emojis = ["🍎","🍌","🍇","🍉","🍓","🍒","🥝","🍍"];
-    let cards, gameBoard, timeEl, movesEl, scoreEl, messageEl, restartBtn, musicBtn;
-    let firstCard, secondCard, lockBoard, moves, score, matchedPairs, time, timer;
+    let cards = [...emojis, ...emojis];
+    cards.sort(() => 0.5 - Math.random());
 
-    // โหลดเสียง
-    const flipSound = document.getElementById("flipSound");
-    const matchSound = document.getElementById("matchSound");
-    const wrongSound = document.getElementById("wrongSound");
-    const winSound = document.getElementById("winSound");
-    const loseSound = document.getElementById("loseSound");
-    const bgMusic = document.getElementById("bgMusic");
+    const gameBoard = document.getElementById("gameBoard");
+    let firstCard, secondCard;
+    let lockBoard = false;
 
-    function initGame() {
-      // รีเซ็ตค่า
-      gameBoard.innerHTML = "";
-      messageEl.textContent = "";
-      restartBtn.style.display = "none";
-
-      cards = [...emojis, ...emojis];
-      cards.sort(() => 0.5 - Math.random());
-
-      firstCard = null;
-      secondCard = null;
-      lockBoard = false;
-      moves = 0;
-      score = 0;
-      matchedPairs = 0;
-      time = 0;
-
-      movesEl.textContent = moves;
-      scoreEl.textContent = score;
-      timeEl.textContent = time;
-
-      clearInterval(timer);
-      timer = setInterval(() => {
-        time++;
-        timeEl.textContent = time;
-      }, 1000);
-
-      // สร้างการ์ด
-      cards.forEach((emoji) => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.dataset.emoji = emoji;
-        card.innerHTML = "?";
-        card.addEventListener("click", flipCard);
-        gameBoard.appendChild(card);
-      });
-    }
+    cards.forEach((emoji, index) => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.dataset.emoji = emoji;
+      card.innerHTML = "?";
+      card.addEventListener("click", flipCard);
+      gameBoard.appendChild(card);
+    });
 
     function flipCard() {
       if (lockBoard) return;
       if (this === firstCard) return;
-      if (this.classList.contains("matched")) return;
-
-      flipSound.play();
 
       this.classList.add("flipped");
       this.innerHTML = this.dataset.emoji;
@@ -180,41 +85,18 @@
       }
 
       secondCard = this;
-      moves++;
-      movesEl.textContent = moves;
-
-      // ถ้าเกิน 18 ครั้ง = แพ้
-      if (moves > 18) {
-        gameOver(false);
-        return;
-      }
-
       checkMatch();
     }
 
     function checkMatch() {
       let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
-      if (isMatch) {
-        score += 10;
-        matchSound.play();
-        disableCards();
-      } else {
-        score -= 2;
-        wrongSound.play();
-        unflipCards();
-      }
-      scoreEl.textContent = score;
+      isMatch ? disableCards() : unflipCards();
     }
 
     function disableCards() {
       firstCard.classList.add("matched");
       secondCard.classList.add("matched");
-      matchedPairs++;
       resetBoard();
-
-      if (matchedPairs === emojis.length) {
-        gameOver(true);
-      }
     }
 
     function unflipCards() {
@@ -231,35 +113,6 @@
     function resetBoard() {
       [firstCard, secondCard, lockBoard] = [null, null, false];
     }
-
-    function gameOver(win) {
-      clearInterval(timer);
-      restartBtn.style.display = "inline-block";
-
-      if (win) {
-        winSound.play();
-        messageEl.innerHTML = `<div class="winner">🎉 คุณชนะ! ใช้เวลา ${time} วินาที, กดไป ${moves} ครั้ง, ได้คะแนน ${score} 🏆</div>`;
-      } else {
-        loseSound.play();
-        messageEl.innerHTML = `<div class="loser">❌ คุณแพ้! กดเกิน 18 ครั้ง ต้องเริ่มใหม่</div>`;
-      }
-    }
-
-    // เริ่มเกมครั้งแรก
-    window.onload = () => {
-      gameBoard = document.getElementById("gameBoard");
-      timeEl = document.getElementById("time");
-      movesEl = document.getElementById("moves");
-      scoreEl = document.getElementById("score");
-      messageEl = document.getElementById("message");
-      restartBtn = document.getElementById("restartBtn");
-      musicBtn = document.getElementById("musicBtn");
-
-      restartBtn.addEventListener("click", initGame);
-      musicBtn.addEventListener("click", toggleMusic);
-
-      initGame();
-    };
   </script>
 </body>
 </html>
