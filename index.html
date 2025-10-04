@@ -7,55 +7,86 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #fce4ec;
-      margin: 0;
-      padding: 20px;
+      background: #f9f9f9;
     }
-    h1 {
-      color: #d81b60;
-    }
+    h1 { color: #ff6699; }
     .game-board {
       display: grid;
       grid-template-columns: repeat(4, 100px);
-      gap: 10px;
+      grid-gap: 10px;
       justify-content: center;
       margin-top: 20px;
     }
     .card {
       width: 100px;
       height: 100px;
-      background: #f8bbd0;
-      border-radius: 10px;
+      background: #ffb6c1;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2em;
+      font-size: 35px;
       cursor: pointer;
+      border-radius: 10px;
       user-select: none;
       transition: background 0.3s;
     }
-    .card.flipped {
-      background: white;
-      border: 2px solid #d81b60;
-    }
-    .card.matched {
-      background: #d81b60;
-      color: white;
+    .flipped, .matched {
+      background: #fff;
       cursor: default;
+    }
+    #status { margin-top: 15px; font-size: 18px; }
+    #controls {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      background: #ff6699;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ff3366;
     }
   </style>
 </head>
 <body>
-  <h1>🎴 เกมจับคู่ความจำ 🎴</h1>
+  <h1>🎴 เกมจับคู่ 🎴</h1>
   <p id="status">เวลา: 60 วินาที | การกด: 0</p>
   <div class="game-board" id="gameBoard"></div>
-  <button id="restart">เล่นอีกครั้ง</button>
+  
+  <div id="controls">
+    <button id="restart">เล่นอีกครั้ง</button>
+    <button id="toggleMusic">เปิด/ปิดเพลง</button>
+  </div>
+
+  <!-- เพลงและเอฟเฟกต์ -->
+  <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+  <audio id="flipSound" src="https://www.fesliyanstudios.com/play-mp3/387"></audio>
+  <audio id="matchSound" src="https://www.fesliyanstudios.com/play-mp3/667"></audio>
+  <audio id="wrongSound" src="https://www.fesliyanstudios.com/play-mp3/4386"></audio>
+  <audio id="loseSound" src="https://www.fesliyanstudios.com/play-mp3/6296"></audio>
 
   <script>
-    const emojis = ["🍎","🍌","🍇","🍉","🍓","🍒","🥝","🍍"];
+    const emojis = [
+      "🍎","🍎","🍊","🍊","🍇","🍇","🍉","🍉",
+      "🍌","🍌","🍍","🍍","🍒","🍒","🥝","🥝"
+    ];
+
     const board = document.getElementById("gameBoard");
     const statusText = document.getElementById("status");
     const restartBtn = document.getElementById("restart");
+    const toggleMusicBtn = document.getElementById("toggleMusic");
+
+    const bgMusic = document.getElementById("bgMusic");
+    const flipSound = document.getElementById("flipSound");
+    const matchSound = document.getElementById("matchSound");
+    const wrongSound = document.getElementById("wrongSound");
+    const loseSound = document.getElementById("loseSound");
+
     let firstCard, secondCard;
     let lockBoard = false;
     let moves = 0;
@@ -63,10 +94,12 @@
     let timer;
     let matchedPairs = 0;
 
+    // สลับลำดับ array
     function shuffle(array) {
       return array.sort(() => Math.random() - 0.5);
     }
 
+    // เริ่มเกมใหม่
     function startGame() {
       board.innerHTML = "";
       shuffle(emojis).forEach(icon => {
@@ -83,9 +116,10 @@
       statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
       clearInterval(timer);
       timer = setInterval(countDown, 1000);
-      bgMusic.play();
+      bgMusic.play().catch(()=>{});
     }
 
+    // กลับการ์ด
     function flipCard() {
       if (lockBoard || this.classList.contains("flipped")) return;
       flipSound.play();
@@ -108,6 +142,7 @@
       checkMatch();
     }
 
+    // เช็คจับคู่
     function checkMatch() {
       if (firstCard.dataset.icon === secondCard.dataset.icon) {
         matchSound.play();
@@ -121,6 +156,7 @@
         }
       } else {
         lockBoard = true;
+        wrongSound.play();
         setTimeout(() => {
           firstCard.innerText = "";
           secondCard.innerText = "";
@@ -136,6 +172,7 @@
       lockBoard = false;
     }
 
+    // นับถอยหลังเวลา
     function countDown() {
       timeLeft--;
       statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
@@ -144,6 +181,7 @@
       }
     }
 
+    // จบเกม
     function endGame(win, message) {
       clearInterval(timer);
       bgMusic.pause();
@@ -153,6 +191,14 @@
     }
 
     restartBtn.addEventListener("click", startGame);
+
+    toggleMusicBtn.addEventListener("click", () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+      } else {
+        bgMusic.pause();
+      }
+    });
 
     startGame();
   </script>
