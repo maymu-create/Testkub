@@ -48,10 +48,17 @@
 </head>
 <body>
   <h1>🎴 เกมจับคู่ 🎴</h1>
-  <p id="status">เวลา: 60 วินาที | การกด: 0</p>
-  <div class="game-board" id="gameBoard"></div>
-  <button id="restart">เล่นอีกครั้ง</button>
+  <div class="stats">
+    ⏱ เวลา: <span id="time">0</span> วินาที | 
+    🎲 ครั้ง: <span id="moves">0</span> / 18 | 
+    🏆 คะแนน: <span id="score">0</span>
+  </div>
 
+  <div class="game-board" id="gameBoard"></div>
+  <div id="message"></div>
+  <button id="restartBtn" class="restart-btn">🔄 เล่นอีกครั้ง</button>
+  <br>
+  <button id="musicBtn" class="music-btn">🎵 ปิดเพลง</button>
   <!-- เสียง -->
   <audio id="bgMusic" src="C:\Users\admin\Downloads\comic-humor-memes-tiktok-music-357342.mp3" loop></audio>
   <audio id="flipSound" src="C:\Users\admin\Downloads\dry-fart.mp3" ></audio>
