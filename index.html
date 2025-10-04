@@ -59,102 +59,120 @@
   <audio id="loseSound" src="C:\Users\admin\Downloads\undertakers-bell_2UwFCIe.mp3" ></audio>
 
   <script>
-    const emojis = [
-    "🍎","🍎","🍊","🍊","🍇","🍇","🍉","🍉",
-    "🍌","🍌","🍍","🍍","🍒","🍒","🥝","🥝"
-  ];
+    const emojis = ["🍎","🍌","🍇","🍉","🍓","🍒","🥝","🍍"];
+    let cards, gameBoard, timeEl, movesEl, scoreEl, winnerMessage, restartBtn;
+    let firstCard, secondCard, lockBoard, moves, score, matchedPairs, time, timer;
 
-  const board = document.getElementById("gameBoard");
-  const statusText = document.getElementById("status");
-  const restartBtn = document.getElementById("restart");
+    function initGame() {
+      // รีเซ็ตค่า
+      gameBoard.innerHTML = "";
+      winnerMessage.textContent = "";
+      restartBtn.style.display = "none";
 
-  let firstCard, secondCard;
-  let lockBoard = false;
-  let moves = 0;
-  let timeLeft = 60;
-  let timer;
-  let matchedPairs = 0;
+      cards = [...emojis, ...emojis];
+      cards.sort(() => 0.5 - Math.random());
 
-  function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
-  }
+      firstCard = null;
+      secondCard = null;
+      lockBoard = false;
+      moves = 0;
+      score = 0;
+      matchedPairs = 0;
+      time = 0;
 
-  function startGame() {
-    board.innerHTML = "";
-    shuffle(emojis).forEach(icon => {
-      const card = document.createElement("div");
-      card.classList.add("card");
-      card.dataset.icon = icon;
-      card.innerText = "";
-      card.addEventListener("click", flipCard);
-      board.appendChild(card);
-    });
-    moves = 0;
-    timeLeft = 60;
-    matchedPairs = 0;
-    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-    clearInterval(timer);
-    timer = setInterval(countDown, 1000);
-  }
+      movesEl.textContent = moves;
+      scoreEl.textContent = score;
+      timeEl.textContent = time;
 
-  function flipCard() {
-    if (lockBoard || this.classList.contains("flipped")) return;
-    this.innerText = this.dataset.icon;
-    this.classList.add("flipped");
+      clearInterval(timer);
+      timer = setInterval(() => {
+        time++;
+        timeEl.textContent = time;
+      }, 1000);
 
-    if (!firstCard) {
-      firstCard = this;
-      return;
+      // สร้างการ์ด
+      cards.forEach((emoji) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.emoji = emoji;
+        card.innerHTML = "?";
+        card.addEventListener("click", flipCard);
+        gameBoard.appendChild(card);
+      });
     }
-    secondCard = this;
-    moves++;
-    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-    checkMatch();
-  }
 
-  function checkMatch() {
-    if (firstCard.dataset.icon === secondCard.dataset.icon) {
+    function flipCard() {
+      if (lockBoard) return;
+      if (this === firstCard) return;
+      if (this.classList.contains("matched")) return;
+
+      this.classList.add("flipped");
+      this.innerHTML = this.dataset.emoji;
+
+      if (!firstCard) {
+        firstCard = this;
+        return;
+      }
+
+      secondCard = this;
+      moves++;
+      movesEl.textContent = moves;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+      if (isMatch) {
+        score += 10;
+        disableCards();
+      } else {
+        score -= 2;
+        unflipCards();
+      }
+      scoreEl.textContent = score;
+    }
+
+    function disableCards() {
       firstCard.classList.add("matched");
       secondCard.classList.add("matched");
       matchedPairs++;
-      resetFlip();
+      resetBoard();
 
-      if (matchedPairs === emojis.length / 2) {
-        endGame(true, "ยินดีด้วย! คุณชนะ 🎉");
+      if (matchedPairs === emojis.length) {
+        clearInterval(timer);
+        winnerMessage.textContent = `🎉 คุณชนะ! ใช้เวลา ${time} วินาที, กดไป ${moves} ครั้ง, ได้คะแนน ${score} 🏆`;
+        restartBtn.style.display = "inline-block";
       }
-    } else {
+    }
+
+    function unflipCards() {
       lockBoard = true;
       setTimeout(() => {
-        firstCard.innerText = "";
-        secondCard.innerText = "";
         firstCard.classList.remove("flipped");
         secondCard.classList.remove("flipped");
-        resetFlip();
-      }, 800);
+        firstCard.innerHTML = "?";
+        secondCard.innerHTML = "?";
+        resetBoard();
+      }, 1000);
     }
-  }
 
-  function resetFlip() {
-    [firstCard, secondCard] = [null, null];
-    lockBoard = false;
-  }
-
-  function countDown() {
-    timeLeft--;
-    statusText.innerText = `เวลา: ${timeLeft} วินาที | การกด: ${moves}`;
-    if (timeLeft <= 0) {
-      endGame(false, "หมดเวลา! แพ้แล้ว ❌");
+    function resetBoard() {
+      [firstCard, secondCard, lockBoard] = [null, null, false];
     }
-  }
 
-  function endGame(win, message) {
-    clearInterval(timer);
-    alert(message);
-  }
+    // เริ่มเกมครั้งแรก
+    window.onload = () => {
+      gameBoard = document.getElementById("gameBoard");
+      timeEl = document.getElementById("time");
+      movesEl = document.getElementById("moves");
+      scoreEl = document.getElementById("score");
+      winnerMessage = document.getElementById("winnerMessage");
+      restartBtn = document.getElementById("restartBtn");
 
-  restartBtn.addEventListener("click", startGame);
+      restartBtn.addEventListener("click", initGame);
 
-  startGame();
+      initGame();
+    };
   </script>
 </body>
 </html>
